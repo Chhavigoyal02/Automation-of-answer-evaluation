@@ -1,16 +1,17 @@
 import os
 import cv2
 import numpy as np
+import streamlit as st
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from collections import Counter
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import joblib
-import streamlit as st
 
 class NewDataUpload:
     def load_images(self, folder_path):
-        images, labels = []
+        images, labels = [], []
         for filename in os.listdir(folder_path):
             if filename.endswith('.jpg') or filename.endswith('.png'):
                 img_path = os.path.join(folder_path, filename)
@@ -21,11 +22,11 @@ class NewDataUpload:
                 labels.append(label)
         images = np.array(images) / 255.0
         labels = np.array(labels)
-        
+
         label_encoder = LabelEncoder()
         labels = label_encoder.fit_transform(labels)
         joblib.dump(label_encoder, 'label_encoder.pkl')
-        
+
         return images, labels, label_encoder
 
     def augment_data(self, images, labels):
@@ -45,7 +46,7 @@ class NewDataUpload:
                 class_images = images[labels == cls]
                 num_to_generate = 2 - class_counts[cls]
                 class_images_expanded = np.expand_dims(class_images, axis=-1)
-                
+
                 i = 0
                 for _ in datagen.flow(class_images_expanded, batch_size=1, save_to_dir=None, save_prefix='aug', save_format='png'):
                     img = _.reshape(128, 128)
@@ -61,6 +62,7 @@ class NewDataUpload:
         images, labels = self.augment_data(images, labels)
         class_counts = Counter(labels)
         print("Class distribution after augmentation:", class_counts)
+
         X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.2, stratify=labels)
         return X_train, X_test, y_train, y_test, label_encoder
 
@@ -83,8 +85,10 @@ def train_model(X_train, y_train, X_val, y_val):
     model = create_model(input_shape, num_classes)
     history = model.fit(X_train, y_train, epochs=10, validation_data=(X_val, y_val))
     model.save('trained_model.h5')
+
     val_loss, val_accuracy = model.evaluate(X_val, y_val)
     print(f"Validation Accuracy: {val_accuracy * 100:.2f}%")
+    
     return history
 
 def data_upload_interface():

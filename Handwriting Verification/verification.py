@@ -1,8 +1,9 @@
+import os
 import cv2
 import numpy as np
+import streamlit as st
 import tensorflow as tf
 import joblib
-import streamlit as st
 
 class HandwritingVerification:
     def __init__(self):

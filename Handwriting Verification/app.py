@@ -5,7 +5,7 @@ from admin_module import admin_interface
 from student_module import student_interface
 
 def main():
-    st.set_page_config(page_title="Handwriting Verification System", layout="wide")
+    st.set_page_config(page_title="Handwriting Verification System", layout="centered")
 
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False

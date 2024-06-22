@@ -23,19 +23,17 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def login():
-    st.sidebar.subheader("Login")
-    username = st.sidebar.text_input("Username")
-    password = st.sidebar.text_input("Password", type="password")
-    if st.sidebar.button("Login"):
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
         user = session.query(User).filter_by(username=username, password=hash_password(password)).first()
         if user:
             return user.username, user.role
         else:
-            st.sidebar.error("Invalid username or password")
+            st.error("Invalid username or password")
     return None, None
 
 def signup():
-    st.subheader("Create New Account")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     role = st.selectbox("Role", ["student", "staff", "admin"])

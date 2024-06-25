@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from auth import hash_password, Session, User
 
 def admin_interface():
@@ -31,6 +32,33 @@ def manage_users_interface():
             session.commit()
             st.success("User added successfully")
 
+    # Bulk Upload Users
+    st.subheader("Bulk Upload Users")
+    uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx"])
+    if uploaded_file:
+        if uploaded_file.name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file)
+        elif uploaded_file.name.endswith('.xlsx'):
+            df = pd.read_excel(uploaded_file)
+        
+        st.write("Preview of uploaded file:")
+        st.dataframe(df.head())
+        
+        if st.button("Upload Users"):
+            try:
+                for _, row in df.iterrows():
+                    if session.query(User).filter_by(username=row['username']).first():
+                        st.warning(f"Username {row['username']} already exists, skipping...")
+                    elif session.query(User).filter_by(email=row['email']).first():
+                        st.warning(f"Email {row['email']} already exists, skipping...")
+                    else:
+                        new_user = User(username=row['username'], email=row['email'], password=hash_password(row['password']), role=row['role'])
+                        session.add(new_user)
+                session.commit()
+                st.success("Users uploaded successfully")
+            except Exception as e:
+                st.error(f"Error uploading users: {e}")
+
     # Update User Role
     st.subheader("Update User Role")
     update_username = st.text_input("Username to update", key="update_username")
@@ -60,6 +88,6 @@ def manage_users_interface():
     st.subheader("All Users")
     users = session.query(User).all()
     for user in users:
-        st.write(f"Username: {user.username}, Role: {user.role}")
+        st.write(f"Username: {user.username}, Role: {user.role}, Email: {user.email}")
 
     session.close()

@@ -41,6 +41,7 @@ def login_page():
     elif choice == "Sign Up":
         signup()
 
+
 def logout():
     st.session_state['logged_in'] = False
     st.session_state['username'] = ""

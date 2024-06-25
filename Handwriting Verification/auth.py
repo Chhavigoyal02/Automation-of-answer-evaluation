@@ -14,6 +14,7 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True)
+    email = Column(String, unique=True)
     password = Column(String)
     role = Column(String)
 
@@ -35,13 +36,16 @@ def login():
 
 def signup():
     username = st.text_input("Username")
+    email = st.text_input("Email")
     password = st.text_input("Password", type="password")
     role = st.selectbox("Role", ["student", "staff", "admin"])
     if st.button("Sign Up"):
         if session.query(User).filter_by(username=username).first():
             st.error("Username already exists")
+        elif session.query(User).filter_by(email=email).first():
+            st.error("Email already exists")
         else:
-            new_user = User(username=username, password=hash_password(password), role=role)
+            new_user = User(username=username, email=email, password=hash_password(password), role=role)
             session.add(new_user)
             session.commit()
             st.success("Account created successfully")
